@@ -14,4 +14,6 @@ export interface PDFTextConfig {
   font: keyof typeof StandardFonts;
   fontSize: number;
   lineHeight: number;
+  labelSpacing: number; // Espaciado horizontal
+  verticalSpacing: number; // Nueva propiedad para controlar el espaciado vertical
 }

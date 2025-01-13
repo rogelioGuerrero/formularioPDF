@@ -19,6 +19,8 @@ export default function App() {
     font: StandardFonts.Helvetica,
     fontSize: 12,
     lineHeight: 1.2,
+    labelSpacing: 20, // Espaciado horizontal
+    verticalSpacing: 10, // Nueva propiedad para controlar el espaciado vertical
   });
 
   const addField = (type: FieldType) => {
@@ -26,7 +28,7 @@ export default function App() {
       type,
       id: `field_${Date.now()}`,
       label: `New ${type} field`,
-      yPosition: Math.max(...fields.map(f => f.yPosition), 0) - 50,
+      yPosition: Math.max(...fields.map(f => f.yPosition), 0) - (pdfTextConfig.fontSize * pdfTextConfig.lineHeight * 2),
     };
     if (type !== 'text') {
       newField.options = ['Option 1', 'Option 2', 'Option 3'];
@@ -74,52 +76,82 @@ export default function App() {
       switch (field.type) {
         case 'text':
           const textField = form.createTextField(field.id);
-          //textField.setText(formData[field.id] || ''); // We're removing FormBuilder
-          textField.addToPage(page, { x: 200, y: field.yPosition - 15, width: 200, height: 20 });
+          textField.addToPage(page, { 
+            x: 50 + pdfTextConfig.labelSpacing, 
+            y: field.yPosition - pdfTextConfig.verticalSpacing, 
+            width: 200, 
+            height: pdfTextConfig.fontSize * 1.2
+          });
           break;
         case 'radio':
           const radioGroup = form.createRadioGroup(field.id);
           field.options?.forEach((option, index) => {
+            const yOffset = field.yPosition - (index * pdfTextConfig.fontSize * pdfTextConfig.lineHeight);
+            
             page.drawText(option, { 
-              x: 200, 
-              y: field.yPosition - (index * pdfTextConfig.fontSize * pdfTextConfig.lineHeight), 
+              x: 50 + pdfTextConfig.labelSpacing, 
+              y: yOffset - pdfTextConfig.verticalSpacing, 
               size: pdfTextConfig.fontSize,
               font: font,
               lineHeight: pdfTextConfig.fontSize * pdfTextConfig.lineHeight
             });
-            radioGroup.addOptionToPage(option, page, { x: 180, y: field.yPosition - 10 - (index * pdfTextConfig.fontSize * pdfTextConfig.lineHeight) });
+
+            const circleSize = pdfTextConfig.fontSize * 0.8;
+            const circleX = 50 + pdfTextConfig.labelSpacing - 20;
+            const circleY = yOffset - pdfTextConfig.verticalSpacing - (circleSize / 2);
+
+            radioGroup.addOptionToPage(option, page, { 
+              x: circleX, 
+              y: circleY, 
+              width: circleSize, 
+              height: circleSize 
+            });
           });
-          //if (formData[field.id]) {
-          //  radioGroup.select(formData[field.id]);
-          //}
           break;
         case 'checkbox':
           field.options?.forEach((option, index) => {
-            const checkBox = form.createCheckBox(`${field.id}.${option}`);
+            const yOffset = field.yPosition - (index * pdfTextConfig.fontSize * pdfTextConfig.lineHeight);
+            
             page.drawText(option, { 
-              x: 220, 
-              y: field.yPosition - (index * pdfTextConfig.fontSize * pdfTextConfig.lineHeight), 
+              x: 50 + pdfTextConfig.labelSpacing, 
+              y: yOffset - pdfTextConfig.verticalSpacing, 
               size: pdfTextConfig.fontSize,
               font: font,
               lineHeight: pdfTextConfig.fontSize * pdfTextConfig.lineHeight
             });
-            checkBox.addToPage(page, { x: 200, y: field.yPosition - 10 - (index * pdfTextConfig.fontSize * pdfTextConfig.lineHeight) });
-            //if (formData[field.id]?.includes(option)) {
-            //  checkBox.check();
-            //}
+
+            const checkboxSize = pdfTextConfig.fontSize * 0.8;
+            const checkboxX = 50 + pdfTextConfig.labelSpacing - 20;
+            const checkboxY = yOffset - pdfTextConfig.verticalSpacing - (checkboxSize / 2);
+
+            const checkBox = form.createCheckBox(`${field.id}.${option}`);
+            checkBox.addToPage(page, { 
+              x: checkboxX, 
+              y: checkboxY, 
+              width: checkboxSize, 
+              height: checkboxSize 
+            });
           });
           break;
         case 'dropdown':
           const dropdown = form.createDropdown(field.id);
           dropdown.addOptions(field.options || []);
-          //dropdown.select(formData[field.id] || field.options?.[0] || '');
-          dropdown.addToPage(page, { x: 200, y: field.yPosition - 15, width: 200, height: 20 });
+          dropdown.addToPage(page, { 
+            x: 50 + pdfTextConfig.labelSpacing, 
+            y: field.yPosition - pdfTextConfig.verticalSpacing, 
+            width: 200, 
+            height: pdfTextConfig.fontSize * 1.2
+          });
           break;
         case 'optionList':
           const optionList = form.createOptionList(field.id);
           optionList.addOptions(field.options || []);
-          //optionList.select(formData[field.id] || field.options?.[0] || '');
-          optionList.addToPage(page, { x: 200, y: field.yPosition - 100, width: 200, height: 100 });
+          optionList.addToPage(page, { 
+            x: 50 + pdfTextConfig.labelSpacing, 
+            y: field.yPosition - 100 - pdfTextConfig.verticalSpacing, 
+            width: 200, 
+            height: pdfTextConfig.fontSize * 5
+          });
           break;
       }
     });
