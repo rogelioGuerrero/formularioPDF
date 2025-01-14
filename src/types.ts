@@ -7,10 +7,14 @@ export interface Field {
   id: string;
   label: string;
   options?: string[];
+  xPosition: number;
   yPosition: number;
-  xPosition?: number; // Nueva propiedad para posición horizontal
-  width?: number;     // Nueva propiedad para ancho
-  height?: number;    // Nueva propiedad para altura
+  width: number;
+  height: number;
+  font: keyof typeof StandardFonts;
+  fontSize: number;
+  inputFont?: keyof typeof StandardFonts;
+  inputFontSize?: number;
 }
 
 export interface PDFTextConfig {
