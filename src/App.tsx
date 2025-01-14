@@ -8,47 +8,14 @@ import type { Field, FieldType, PDFTextConfig } from './types';
 
 export default function App() {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
-  const [fields, setFields] = useState<Field[]>([
-    { type: 'text', id: 'superhero', label: 'Favorite Superhero', yPosition: 700 },
-    { type: 'radio', id: 'rocket', label: 'Favorite Rocket', options: ['Falcon Heavy', 'Saturn IV', 'Delta IV Heavy', 'Space Launch System'], yPosition: 650 },
-    { type: 'checkbox', id: 'gundams', label: 'Favorite Gundams', options: ['Exia', 'Kyrios', 'Virtue', 'Dynames'], yPosition: 550 },
-    { type: 'dropdown', id: 'planet', label: 'Favorite Planet', options: ['Venus', 'Earth', 'Mars', 'Pluto'], yPosition: 450 },
-    { type: 'optionList', id: 'person', label: 'Favorite Person', options: ['Julius Caesar', 'Ada Lovelace', 'Cleopatra', 'Aaron Burr', 'Mark Antony'], yPosition: 400 },
-  ]);
+  const [fields, setFields] = useState<Field[]>([]);
   const [pdfTextConfig, setPdfTextConfig] = useState<PDFTextConfig>({
     font: StandardFonts.Helvetica,
     fontSize: 12,
     lineHeight: 1.2,
-    labelSpacing: 20, // Espaciado horizontal
-    verticalSpacing: 10, // Nueva propiedad para controlar el espaciado vertical
+    labelSpacing: 20,
+    verticalSpacing: 30,
   });
-
-  const addField = (type: FieldType) => {
-    const newField: Field = {
-      type,
-      id: `field_${Date.now()}`,
-      label: `New ${type} field`,
-      yPosition: Math.max(...fields.map(f => f.yPosition), 0) - (pdfTextConfig.fontSize * pdfTextConfig.lineHeight * 2),
-    };
-    if (type !== 'text') {
-      newField.options = ['Option 1', 'Option 2', 'Option 3'];
-    }
-    setFields([...fields, newField]);
-  };
-
-  const deleteField = (id: string) => {
-    setFields(fields.filter(field => field.id !== id));
-  };
-
-  const updateField = (id: string, updatedField: Partial<Field>) => {
-    setFields(fields.map(field => 
-      field.id === id ? { ...field, ...updatedField } : field
-    ));
-  };
-
-  const reorderFields = (newFields: Field[]) => {
-    setFields(newFields);
-  };
 
   const createForm = useCallback(async () => {
     const pdfDoc = await PDFDocument.create();
@@ -165,6 +132,35 @@ export default function App() {
   useEffect(() => {
     createForm();
   }, [createForm, fields, pdfTextConfig]);
+
+  const addField = (type: FieldType) => {
+    const newField: Field = {
+      type,
+      id: `field_${Date.now()}`,
+      label: `New ${type} field`,
+      yPosition: Math.max(...fields.map(f => f.yPosition), 700) - (pdfTextConfig.fontSize * pdfTextConfig.lineHeight * 2),
+    };
+    if (type !== 'text') {
+      newField.options = ['Option 1', 'Option 2', 'Option 3'];
+    }
+    const updatedFields = [...fields, newField];
+    setFields(updatedFields);
+    createForm();
+  };
+
+  const deleteField = (id: string) => {
+    setFields(fields.filter(field => field.id !== id));
+  };
+
+  const updateField = (id: string, updatedField: Partial<Field>) => {
+    setFields(fields.map(field => 
+      field.id === id ? { ...field, ...updatedField } : field
+    ));
+  };
+
+  const reorderFields = (newFields: Field[]) => {
+    setFields(newFields);
+  };
 
   return (
     <Layout>

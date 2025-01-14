@@ -8,12 +8,23 @@ export interface Field {
   label: string;
   options?: string[];
   yPosition: number;
+  xPosition?: number; // Nueva propiedad para posición horizontal
+  width?: number;     // Nueva propiedad para ancho
+  height?: number;    // Nueva propiedad para altura
 }
 
 export interface PDFTextConfig {
   font: keyof typeof StandardFonts;
   fontSize: number;
   lineHeight: number;
-  labelSpacing: number; // Espaciado horizontal
-  verticalSpacing: number; // Nueva propiedad para controlar el espaciado vertical
+  labelSpacing: number;
+  verticalSpacing: number;
+}
+
+export interface FieldPosition {
+  id: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
