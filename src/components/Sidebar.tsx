@@ -1,7 +1,21 @@
 import React from 'react';
-import { Plus, Type, Radio, CheckSquare, ListFilter, List } from 'lucide-react';
+import { 
+  Plus, 
+  Type, 
+  Radio, 
+  CheckSquare, 
+  ListFilter, 
+  List, 
+  Calendar, 
+  Image, 
+  PenLine,
+  Hash,
+  FileText,
+  Clock,
+  FileInput,
+  FileOutput
+} from 'lucide-react';
 import type { PDFTextConfig, FieldType } from '../types';
-import { StandardFonts } from 'pdf-lib';
 
 interface SidebarProps {
   onAddField: (type: FieldType) => void;
@@ -9,7 +23,7 @@ interface SidebarProps {
   onConfigChange: (config: Partial<PDFTextConfig>) => void;
 }
 
-export function Sidebar({ onAddField, pdfTextConfig, onConfigChange }: SidebarProps) {
+export function Sidebar({ onAddField }: SidebarProps) {
   return (
     <div className="w-64 bg-white p-4 rounded-lg shadow-md space-y-6">
       <div>
@@ -45,43 +59,54 @@ export function Sidebar({ onAddField, pdfTextConfig, onConfigChange }: SidebarPr
           >
             <List size={18} /> Option List
           </button>
-        </div>
-      </div>
-
-      <div>
-        <h2 className="text-lg font-semibold mb-3">PDF Text Settings</h2>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Font</label>
-            <select
-              value={pdfTextConfig.font}
-              onChange={(e) => onConfigChange({ font: e.target.value as keyof typeof StandardFonts })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-            >
-              <option value={StandardFonts.Helvetica}>Helvetica</option>
-              <option value={StandardFonts.TimesRoman}>Times Roman</option>
-              <option value={StandardFonts.Courier}>Courier</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Font Size</label>
-            <input
-              type="number"
-              value={pdfTextConfig.fontSize}
-              onChange={(e) => onConfigChange({ fontSize: Number(e.target.value) })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Line Height</label>
-            <input
-              type="number"
-              step="0.1"
-              value={pdfTextConfig.lineHeight}
-              onChange={(e) => onConfigChange({ lineHeight: Number(e.target.value) })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-            />
-          </div>
+          <button
+            onClick={() => onAddField('date')}
+            className="flex items-center gap-2 w-full p-2 text-left hover:bg-gray-100 rounded-md"
+          >
+            <Calendar size={18} /> Date Picker
+          </button>
+          <button
+            onClick={() => onAddField('time')}
+            className="flex items-center gap-2 w-full p-2 text-left hover:bg-gray-100 rounded-md"
+          >
+            <Clock size={18} /> Time Picker
+          </button>
+          <button
+            onClick={() => onAddField('number')}
+            className="flex items-center gap-2 w-full p-2 text-left hover:bg-gray-100 rounded-md"
+          >
+            <Hash size={18} /> Number Field
+          </button>
+          <button
+            onClick={() => onAddField('image')}
+            className="flex items-center gap-2 w-full p-2 text-left hover:bg-gray-100 rounded-md"
+          >
+            <Image size={18} /> Image Upload
+          </button>
+          <button
+            onClick={() => onAddField('signature')}
+            className="flex items-center gap-2 w-full p-2 text-left hover:bg-gray-100 rounded-md"
+          >
+            <PenLine size={18} /> Signature
+          </button>
+          <button
+            onClick={() => onAddField('fileInput')}
+            className="flex items-center gap-2 w-full p-2 text-left hover:bg-gray-100 rounded-md"
+          >
+            <FileInput size={18} /> File Input
+          </button>
+          <button
+            onClick={() => onAddField('fileOutput')}
+            className="flex items-center gap-2 w-full p-2 text-left hover:bg-gray-100 rounded-md"
+          >
+            <FileOutput size={18} /> File Output
+          </button>
+          <button
+            onClick={() => onAddField('richText')}
+            className="flex items-center gap-2 w-full p-2 text-left hover:bg-gray-100 rounded-md"
+          >
+            <FileText size={18} /> Rich Text
+          </button>
         </div>
       </div>
     </div>

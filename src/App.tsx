@@ -5,17 +5,34 @@ import { Sidebar } from './components/Sidebar';
 import PDFViewer from './components/PDFViewer';
 import FieldManager from './components/FieldManager';
 import type { Field, FieldType, PDFTextConfig } from './types';
+import { safeStorage } from './utils/storage';
 
-export default function App() {
+const App = () => {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
-  const [fields, setFields] = useState<Field[]>([]);
-  const [pdfTextConfig, setPdfTextConfig] = useState<PDFTextConfig>({
-    font: StandardFonts.Helvetica,
-    fontSize: 12,
-    lineHeight: 1.2,
-    labelSpacing: 20,
-    verticalSpacing: 30,
+  const [fields, setFields] = useState<Field[]>(() => {
+    const savedFields = safeStorage.getItem('formFields');
+    return savedFields || [];
   });
+  const [pdfTextConfig, setPdfTextConfig] = useState<PDFTextConfig>(() => {
+    const savedConfig = safeStorage.getItem('pdfConfig');
+    return savedConfig || {
+      font: StandardFonts.Helvetica,
+      fontSize: 12,
+      lineHeight: 1.2,
+      labelSpacing: 20,
+      verticalSpacing: 30,
+    };
+  });
+
+  // Save fields to storage whenever they change
+  useEffect(() => {
+    safeStorage.setItem('formFields', fields);
+  }, [fields]);
+
+  // Save pdfTextConfig to storage whenever it changes
+  useEffect(() => {
+    safeStorage.setItem('pdfConfig', pdfTextConfig);
+  }, [pdfTextConfig]);
 
   const createForm = useCallback(async () => {
     const pdfDoc = await PDFDocument.create();
@@ -32,6 +49,7 @@ export default function App() {
     const form = pdfDoc.getForm();
 
     fields.forEach((field) => {
+      // Draw field label
       page.drawText(`${field.label}:`, { 
         x: 50, 
         y: field.yPosition, 
@@ -39,9 +57,14 @@ export default function App() {
         font: font,
         lineHeight: pdfTextConfig.fontSize * pdfTextConfig.lineHeight
       });
-      
+
+      // Handle different field types
       switch (field.type) {
         case 'text':
+        case 'number':
+        case 'date':
+        case 'time':
+        case 'richText':
           const textField = form.createTextField(field.id);
           textField.addToPage(page, { 
             x: 50 + pdfTextConfig.labelSpacing, 
@@ -50,6 +73,7 @@ export default function App() {
             height: pdfTextConfig.fontSize * 1.2
           });
           break;
+
         case 'radio':
           const radioGroup = form.createRadioGroup(field.id);
           field.options?.forEach((option, index) => {
@@ -75,6 +99,7 @@ export default function App() {
             });
           });
           break;
+
         case 'checkbox':
           field.options?.forEach((option, index) => {
             const yOffset = field.yPosition - (index * pdfTextConfig.fontSize * pdfTextConfig.lineHeight);
@@ -100,6 +125,7 @@ export default function App() {
             });
           });
           break;
+
         case 'dropdown':
           const dropdown = form.createDropdown(field.id);
           dropdown.addOptions(field.options || []);
@@ -110,6 +136,7 @@ export default function App() {
             height: pdfTextConfig.fontSize * 1.2
           });
           break;
+
         case 'optionList':
           const optionList = form.createOptionList(field.id);
           optionList.addOptions(field.options || []);
@@ -118,6 +145,46 @@ export default function App() {
             y: field.yPosition - 100 - pdfTextConfig.verticalSpacing, 
             width: 200, 
             height: pdfTextConfig.fontSize * 5
+          });
+          break;
+
+        case 'image':
+          if (field.imageData) {
+            const imageBytes = Uint8Array.from(atob(field.imageData), c => c.charCodeAt(0));
+            const image = pdfDoc.embedPng(imageBytes);
+            const { width, height } = image.scale(0.5);
+            page.drawImage(image, {
+              x: 50 + pdfTextConfig.labelSpacing,
+              y: field.yPosition - pdfTextConfig.verticalSpacing,
+              width,
+              height
+            });
+          }
+          break;
+
+        case 'signature':
+          if (field.signatureData) {
+            const signatureBytes = Uint8Array.from(atob(field.signatureData), c => c.charCodeAt(0));
+            const signature = pdfDoc.embedPng(signatureBytes);
+            const { width, height } = signature.scale(0.5);
+            page.drawImage(signature, {
+              x: 50 + pdfTextConfig.labelSpacing,
+              y: field.yPosition - pdfTextConfig.verticalSpacing,
+              width,
+              height
+            });
+          }
+          break;
+
+        case 'fileInput':
+        case 'fileOutput':
+          // Handle file fields as text fields for now
+          const fileField = form.createTextField(field.id);
+          fileField.addToPage(page, { 
+            x: 50 + pdfTextConfig.labelSpacing, 
+            y: field.yPosition - pdfTextConfig.verticalSpacing, 
+            width: 200, 
+            height: pdfTextConfig.fontSize * 1.2
           });
           break;
       }
@@ -129,23 +196,22 @@ export default function App() {
     setPdfUrl(url);
   }, [fields, pdfTextConfig]);
 
-  useEffect(() => {
-    createForm();
-  }, [createForm, fields, pdfTextConfig]);
-
   const addField = (type: FieldType) => {
     const newField: Field = {
       type,
       id: `field_${Date.now()}`,
       label: `New ${type} field`,
       yPosition: Math.max(...fields.map(f => f.yPosition), 700) - (pdfTextConfig.fontSize * pdfTextConfig.lineHeight * 2),
+      xPosition: 50,
+      width: 200,
+      height: pdfTextConfig.fontSize * 1.2,
+      font: StandardFonts.Helvetica,
+      fontSize: pdfTextConfig.fontSize
     };
     if (type !== 'text') {
       newField.options = ['Option 1', 'Option 2', 'Option 3'];
     }
-    const updatedFields = [...fields, newField];
-    setFields(updatedFields);
-    createForm();
+    setFields([...fields, newField]);
   };
 
   const deleteField = (id: string) => {
@@ -161,6 +227,11 @@ export default function App() {
   const reorderFields = (newFields: Field[]) => {
     setFields(newFields);
   };
+
+  // Call createForm whenever fields or pdfTextConfig changes
+  useEffect(() => {
+    createForm();
+  }, [fields, pdfTextConfig]);
 
   return (
     <Layout>
@@ -184,3 +255,5 @@ export default function App() {
     </Layout>
   );
 }
+
+export default App;

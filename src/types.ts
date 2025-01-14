@@ -1,6 +1,19 @@
 import { StandardFonts } from 'pdf-lib';
 
-export type FieldType = 'text' | 'radio' | 'checkbox' | 'dropdown' | 'optionList';
+export type FieldType = 
+  | 'text' 
+  | 'radio' 
+  | 'checkbox' 
+  | 'dropdown' 
+  | 'optionList' 
+  | 'date'
+  | 'time'
+  | 'number'
+  | 'image'
+  | 'signature'
+  | 'fileInput'
+  | 'fileOutput'
+  | 'richText';
 
 export interface Field {
   type: FieldType;
@@ -15,6 +28,10 @@ export interface Field {
   fontSize: number;
   inputFont?: keyof typeof StandardFonts;
   inputFontSize?: number;
+  imageData?: string;
+  signatureData?: string;
+  fileData?: string;
+  richTextData?: string;
 }
 
 export interface PDFTextConfig {
