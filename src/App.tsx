@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { PDFDocument, StandardFonts } from 'pdf-lib';
-import { Layout } from './components/Layout';
+import Layout from './components/Layout';
 import PDFViewer from './components/PDFViewer';
 import FieldManager from './components/FieldManager';
 import type { Field, FieldType, PDFTextConfig } from './types';
@@ -206,8 +206,12 @@ const App = () => {
     createForm();
   }, [fields, pdfTextConfig]);
 
+  const handleConfigChange = (config: Partial<PDFTextConfig>) => {
+    setPdfTextConfig(prevConfig => ({ ...prevConfig, ...config }));
+  };
+
   return (
-    <Layout onAddField={addField}>
+    <Layout onAddField={addField} pdfTextConfig={pdfTextConfig} onConfigChange={handleConfigChange}>
       <div className="flex-1 space-y-4">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">Online Form Creator</h1>
