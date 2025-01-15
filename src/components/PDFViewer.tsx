@@ -1,9 +1,17 @@
 import React, { useRef, useState, useEffect } from 'react';
+import { 
+  TextCursorInput,
+  CircleDot,
+  CheckSquare,
+  ChevronDown,
+  List
+} from 'lucide-react';
 
 interface PDFViewerProps {
   pdfUrl: string | null;
   fields: {
     id: string;
+    type: string;
     xPosition: number;
     yPosition: number;
     width: number;
@@ -16,11 +24,28 @@ interface PDFViewerProps {
   ) => void;
 }
 
-export default function PDFViewer({
+const FieldIcon = ({ type }: { type: string }) => {
+  switch (type) {
+    case 'text':
+      return <TextCursorInput size={16} className="text-blue-600" />;
+    case 'radio':
+      return <CircleDot size={16} className="text-green-600" />;
+    case 'checkbox':
+      return <CheckSquare size={16} className="text-purple-600" />;
+    case 'dropdown':
+      return <ChevronDown size={16} className="text-orange-600" />;
+    case 'optionList':
+      return <List size={16} className="text-red-600" />;
+    default:
+      return <TextCursorInput size={16} />;
+  }
+};
+
+const PDFViewer = ({
   pdfUrl,
   fields,
   updateField,
-}: PDFViewerProps) {
+}: PDFViewerProps) => {
   const pdfContainerRef = useRef<HTMLDivElement>(null);
   const [draggingFieldId, setDraggingFieldId] = useState<string | null>(null);
   const [fieldPosition, setFieldPosition] = useState<{
@@ -66,7 +91,6 @@ export default function PDFViewer({
       const x = event.clientX - containerRect.left;
       const y = event.clientY - containerRect.top;
 
-      // Actualizar las coordenadas del campo
       updateField(fieldId, { 
         xPosition: x,
         yPosition: y 
@@ -76,6 +100,107 @@ export default function PDFViewer({
 
   const handleIframeLoad = () => {
     setIframeLoaded(true);
+  };
+
+  const renderFieldContent = (field: any) => {
+    const textStyle = {
+      fontFamily: field.font,
+      fontSize: field.fontSize,
+      lineHeight: field.lineHeight,
+    };
+
+    switch (field.type) {
+      case 'text':
+        return (
+          <div 
+            className="flex items-center gap-2 p-2 bg-white rounded border border-blue-200"
+            style={textStyle}
+          >
+            <FieldIcon type={field.type} />
+            <span>{field.label}</span>
+          </div>
+        );
+      case 'textarea':
+        return (
+          <div 
+            className="flex flex-col gap-2 p-2 bg-white rounded border border-blue-200"
+            style={textStyle}
+          >
+            <div className="flex items-center gap-2">
+              <FieldIcon type={field.type} />
+              <span>{field.label}</span>
+            </div>
+            <div className="w-full h-full bg-gray-100 rounded p-1">
+              {Array.from({ length: field.lines || 1 }).map((_, i) => (
+                <div key={i} className="w-full h-4 bg-gray-200 mb-1 rounded" />
+              ))}
+            </div>
+          </div>
+        );
+      case 'radio':
+        return (
+          <div 
+            className="flex flex-col gap-2 p-2 bg-white rounded border border-green-200"
+            style={textStyle}
+          >
+            <div className="flex items-center gap-2">
+              <FieldIcon type={field.type} />
+              <span>{field.label}</span>
+            </div>
+            {(field.options || []).map((option: string, i: number) => (
+              <div key={i} className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full border border-gray-400" />
+                <span>{option}</span>
+              </div>
+            ))}
+          </div>
+        );
+      case 'checkbox':
+        return (
+          <div 
+            className="flex flex-col gap-2 p-2 bg-white rounded border border-purple-200"
+            style={textStyle}
+          >
+            <div className="flex items-center gap-2">
+              <FieldIcon type={field.type} />
+              <span>{field.label}</span>
+            </div>
+            {(field.options || []).map((option: string, i: number) => (
+              <div key={i} className="flex items-center gap-2">
+                <div className="w-4 h-4 border border-gray-400 rounded-sm" />
+                <span>{option}</span>
+              </div>
+            ))}
+          </div>
+        );
+      case 'dropdown':
+        return (
+          <div 
+            className="p-2 bg-white rounded border border-orange-200"
+            style={textStyle}
+          >
+            <div className="flex items-center gap-2">
+              <FieldIcon type={field.type} />
+              <div className="w-24 h-6 bg-gray-200 rounded" />
+              <ChevronDown size={16} className="text-gray-500" />
+            </div>
+          </div>
+        );
+      case 'optionList':
+        return (
+          <div 
+            className="p-2 bg-white rounded border border-red-200"
+            style={textStyle}
+          >
+            <div className="flex items-center gap-2">
+              <FieldIcon type={field.type} />
+              <div className="w-24 h-20 bg-gray-200 rounded" />
+            </div>
+          </div>
+        );
+      default:
+        return null;
+    }
   };
 
   return (
@@ -114,15 +239,11 @@ export default function PDFViewer({
                     top: field.yPosition,
                     width: field.width,
                     height: field.height,
-                    border: '2px dashed blue',
                     cursor: 'move',
                     zIndex: 20,
-                    backgroundColor: 'rgba(0, 0, 255, 0.1)',
                   }}
                 >
-                  <span className="text-xs text-black bg-gray-100 p-1">
-                    {field.label}
-                  </span>
+                  {renderFieldContent(field)}
                 </div>
               ))}
           </div>
@@ -135,4 +256,6 @@ export default function PDFViewer({
       )}
     </div>
   );
-}
+};
+
+export default PDFViewer; // Esta es la línea que faltaba

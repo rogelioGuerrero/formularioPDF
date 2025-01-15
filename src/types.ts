@@ -2,6 +2,7 @@ import { StandardFonts } from 'pdf-lib';
 
 export type FieldType = 
   | 'text' 
+  | 'textarea'
   | 'radio' 
   | 'checkbox' 
   | 'dropdown' 
@@ -21,4 +22,5 @@ export interface Field {
   lineHeight: number;
   labelSpacing: number;
   verticalSpacing: number;
+  lines?: number;
 }

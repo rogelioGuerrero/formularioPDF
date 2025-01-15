@@ -103,12 +103,14 @@ const App = () => {
         // Handle different field types
         switch (field.type) {
           case 'text':
+          case 'textarea':
             const textField = pdfDoc.getForm().createTextField(field.id);
             textField.addToPage(firstPage, {
               x: field.xPosition + field.labelSpacing,
               y: height - field.yPosition - field.verticalSpacing,
               width: field.width,
-              height: field.height,
+              height: field.height * (field.lines || 1),
+              multiline: field.type === 'textarea',
             });
             break;
 
@@ -262,4 +264,4 @@ const App = () => {
   );
 };
 
-export default App;
+export default App; // Esta es la línea que faltaba

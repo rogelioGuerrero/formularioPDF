@@ -5,3 +5,7 @@ By default, this template supports JSX syntax with Tailwind and Shadcn CSS class
 Use icons from lucide-react for logos.
 
 Use stock photos from unsplash where appropriate, only valid URLs you know exist. Do not download the images, only link to them in image tags.
+
+Realiza únicamente modificaciones puntuales en el código existente, sin reemplazar partes que no están involucradas en el cambio. Si necesitas modificar o eliminar código, hazlo directamente y explica las modificaciones en comentarios. Nunca uses marcadores como // ... (código anterior) para reemplazar bloques de código. Además, asegúrate de conservar el contexto y la funcionalidad del código original.
+
+En casos donde el cambio sea extenso o complejo, escribe el nuevo bloque completo junto con una comparación explícita entre el código anterior y el modificado, detallando los cambios.

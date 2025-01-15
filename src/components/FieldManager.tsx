@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Trash2, GripVertical, Settings } from 'lucide-react';
+import { Trash2, GripVertical, Settings, Plus, Minus } from 'lucide-react';
 import type { Field } from '../types';
 
 interface FieldManagerProps {
@@ -74,6 +74,35 @@ export default function FieldManager({
     });
   };
 
+  const handleAddOption = (id: string) => {
+    const field = fields.find(f => f.id === id);
+    if (field) {
+      const newOptions = [...(field.options || []), `Opción ${(field.options?.length || 0) + 1}`];
+      onUpdateField(id, { options: newOptions });
+    }
+  };
+
+  const handleRemoveOption = (id: string, index: number) => {
+    const field = fields.find(f => f.id === id);
+    if (field?.options) {
+      const newOptions = field.options.filter((_, i) => i !== index);
+      onUpdateField(id, { options: newOptions });
+    }
+  };
+
+  const handleOptionChange = (id: string, index: number, value: string) => {
+    const field = fields.find(f => f.id === id);
+    if (field?.options) {
+      const newOptions = [...field.options];
+      newOptions[index] = value;
+      onUpdateField(id, { options: newOptions });
+    }
+  };
+
+  const handleLinesChange = (id: string, lines: number) => {
+    onUpdateField(id, { lines });
+  };
+
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <h2 className="text-lg font-semibold mb-4">Form Fields</h2>
@@ -99,7 +128,7 @@ export default function FieldManager({
                       className="text-sm font-medium bg-transparent border-none focus:ring-0"
                     />
                     <p className="text-xs text-gray-500 capitalize">
-                      {field.type}
+                      {field.type === 'textarea' ? 'Área de texto' : field.type}
                     </p>
                   </div>
                 </div>
@@ -179,6 +208,22 @@ export default function FieldManager({
                       className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     />
                   </div>
+                  {['textarea', 'text'].includes(field.type) && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Líneas
+                      </label>
+                      <input
+                        type="number"
+                        value={field.lines || 1}
+                        onChange={(e) =>
+                          handleLinesChange(field.id, Number(e.target.value))
+                        }
+                        min={1}
+                        className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                      />
+                    </div>
+                  )}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Font
@@ -209,6 +254,39 @@ export default function FieldManager({
                     />
                   </div>
                 </div>
+
+                {['radio', 'checkbox', 'dropdown', 'optionList'].includes(field.type) && (
+                  <div className="mt-4">
+                    <h3 className="text-sm font-medium text-gray-700 mb-2">Opciones</h3>
+                    <div className="space-y-2">
+                      {field.options?.map((option, index) => (
+                        <div key={index} className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={option}
+                            onChange={(e) =>
+                              handleOptionChange(field.id, index, e.target.value)
+                            }
+                            className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                          />
+                          <button
+                            onClick={() => handleRemoveOption(field.id, index)}
+                            className="p-1 text-red-500 hover:bg-red-50 rounded-md"
+                          >
+                            <Minus size={16} />
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        onClick={() => handleAddOption(field.id)}
+                        className="w-full flex items-center justify-center gap-2 p-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded-md"
+                      >
+                        <Plus size={16} />
+                        Añadir opción
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
