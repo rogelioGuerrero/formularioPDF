@@ -1,38 +1,59 @@
 import React from 'react';
-import type { PDFTextConfig } from '../types';
+import {
+  TextCursorInput,
+  CircleDot,
+  CheckSquare,
+  ChevronDown,
+  List,
+} from 'lucide-react';
+import type { FieldType } from '../types';
 
 interface SidebarProps {
-  pdfTextConfig: PDFTextConfig;
-  onConfigChange: (config: Partial<PDFTextConfig>) => void;
+  onAddField: (type: FieldType) => void;
 }
 
-export function Sidebar({ pdfTextConfig, onConfigChange }: SidebarProps) {
+export function Sidebar({ onAddField }: SidebarProps) {
+  const handleIconClick = (type: FieldType) => {
+    onAddField(type);
+  };
+
   return (
-    <div className="w-64 bg-white p-4 rounded-lg shadow-md space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold mb-3">PDF Configuration</h2>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Font Size</label>
-            <input
-              type="number"
-              value={pdfTextConfig.fontSize}
-              onChange={(e) => onConfigChange({ fontSize: Number(e.target.value) })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Line Height</label>
-            <input
-              type="number"
-              value={pdfTextConfig.lineHeight}
-              onChange={(e) => onConfigChange({ lineHeight: Number(e.target.value) })}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-              step="0.1"
-            />
-          </div>
-        </div>
-      </div>
+    <div className="w-16 bg-white p-2 rounded-lg shadow-md flex flex-col items-center gap-4">
+      <button
+        onClick={() => handleIconClick('text')}
+        className="p-2 rounded-md hover:bg-gray-100 transition-colors"
+        title="Text Field"
+      >
+        <TextCursorInput size={20} />
+      </button>
+      <button
+        onClick={() => handleIconClick('radio')}
+        className="p-2 rounded-md hover:bg-gray-100 transition-colors"
+        title="Radio Group"
+      >
+        <CircleDot size={20} />
+      </button>
+      <button
+        onClick={() => handleIconClick('checkbox')}
+        className="p-2 rounded-md hover:bg-gray-100 transition-colors"
+        title="Checkbox Group"
+      >
+        <CheckSquare size={20} />
+      </button>
+      <button
+        onClick={() => handleIconClick('dropdown')}
+        className="p-2 rounded-md hover:bg-gray-100 transition-colors"
+        title="Dropdown"
+      >
+        <ChevronDown size={20} />
+      </button>
+      <button
+        onClick={() => handleIconClick('optionList')}
+        className="p-2 rounded-md hover:bg-gray-100 transition-colors"
+        title="Option List"
+      >
+        <List size={20} />
+      </button>
     </div>
   );
 }

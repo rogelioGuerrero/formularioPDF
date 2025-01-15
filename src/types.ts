@@ -18,20 +18,7 @@ export interface Field {
   height: number;
   font: keyof typeof StandardFonts;
   fontSize: number;
-}
-
-export interface PDFTextConfig {
-  font: keyof typeof StandardFonts;
-  fontSize: number;
   lineHeight: number;
   labelSpacing: number;
   verticalSpacing: number;
-}
-
-export interface FieldPosition {
-  id: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
 }
