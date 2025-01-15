@@ -6,18 +6,11 @@ import {
   ChevronDown,
   List
 } from 'lucide-react';
+import type { Field } from '../types';
 
 interface PDFViewerProps {
   pdfUrl: string | null;
-  fields: {
-    id: string;
-    type: string;
-    xPosition: number;
-    yPosition: number;
-    width: number;
-    height: number;
-    label: string;
-  }[];
+  fields: Field[];
   updateField: (
     id: string,
     updatedField: Partial<{ xPosition: number; yPosition: number }>
@@ -102,7 +95,7 @@ const PDFViewer = ({
     setIframeLoaded(true);
   };
 
-  const renderFieldContent = (field: any) => {
+  const renderFieldContent = (field: Field) => {
     const textStyle = {
       fontFamily: field.font,
       fontSize: field.fontSize,
@@ -176,25 +169,40 @@ const PDFViewer = ({
       case 'dropdown':
         return (
           <div 
-            className="p-2 bg-white rounded border border-orange-200"
+            className="flex flex-col gap-2 p-2 bg-white rounded border border-orange-200"
             style={textStyle}
           >
             <div className="flex items-center gap-2">
               <FieldIcon type={field.type} />
-              <div className="w-24 h-6 bg-gray-200 rounded" />
-              <ChevronDown size={16} className="text-gray-500" />
+              <span>{field.label}</span>
+            </div>
+            <div className="flex flex-col gap-1">
+              {(field.options || []).map((option: string, i: number) => (
+                <div key={i} className="flex items-center gap-2">
+                  <div className="w-24 h-6 bg-gray-200 rounded" />
+                  <span className="text-sm">{option}</span>
+                </div>
+              ))}
             </div>
           </div>
         );
       case 'optionList':
         return (
           <div 
-            className="p-2 bg-white rounded border border-red-200"
+            className="flex flex-col gap-2 p-2 bg-white rounded border border-red-200"
             style={textStyle}
           >
             <div className="flex items-center gap-2">
               <FieldIcon type={field.type} />
-              <div className="w-24 h-20 bg-gray-200 rounded" />
+              <span>{field.label}</span>
+            </div>
+            <div className="flex flex-col gap-1">
+              {(field.options || []).map((option: string, i: number) => (
+                <div key={i} className="flex items-center gap-2">
+                  <div className="w-24 h-4 bg-gray-200 rounded" />
+                  <span className="text-sm">{option}</span>
+                </div>
+              ))}
             </div>
           </div>
         );
@@ -258,4 +266,4 @@ const PDFViewer = ({
   );
 };
 
-export default PDFViewer; // Esta es la línea que faltaba
+export default PDFViewer;
