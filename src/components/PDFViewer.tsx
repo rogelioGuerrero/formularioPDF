@@ -8,6 +8,7 @@ interface PDFViewerProps {
     yPosition: number;
     width: number;
     height: number;
+    label: string;
   }[];
   updateField: (
     id: string,
@@ -35,6 +36,7 @@ export default function PDFViewer({
   ) => {
     setDraggingFieldId(fieldId);
     setShowOverlay(true);
+    event.dataTransfer.setData('text/plain', fieldId);
   };
 
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
@@ -42,16 +44,14 @@ export default function PDFViewer({
     event.dataTransfer.dropEffect = 'move';
 
     const containerRect = pdfContainerRef.current?.getBoundingClientRect();
-
     if (containerRect) {
       const x = event.clientX - containerRect.left;
       const y = event.clientY - containerRect.top;
-
       setFieldPosition({ x, y });
     }
   };
 
-  const handleDragEnd = (event: React.DragEvent<HTMLDivElement>) => {
+  const handleDragEnd = () => {
     setDraggingFieldId(null);
     setFieldPosition(null);
     setShowOverlay(false);
@@ -66,7 +66,11 @@ export default function PDFViewer({
       const x = event.clientX - containerRect.left;
       const y = event.clientY - containerRect.top;
 
-      updateField(fieldId, { xPosition: x, yPosition: y });
+      // Actualizar las coordenadas del campo
+      updateField(fieldId, { 
+        xPosition: x,
+        yPosition: y 
+      });
     }
   };
 
@@ -84,13 +88,7 @@ export default function PDFViewer({
         style={{ height: '800px' }}
       >
         {pdfUrl && (
-          <div
-            className="relative"
-            style={{
-              width: '100%',
-              height: '100%',
-            }}
-          >
+          <div className="relative" style={{ width: '100%', height: '100%' }}>
             <iframe
               src={pdfUrl}
               className="w-full h-full"
@@ -119,6 +117,7 @@ export default function PDFViewer({
                     border: '2px dashed blue',
                     cursor: 'move',
                     zIndex: 20,
+                    backgroundColor: 'rgba(0, 0, 255, 0.1)',
                   }}
                 >
                   <span className="text-xs text-black bg-gray-100 p-1">
