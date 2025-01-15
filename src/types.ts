@@ -5,15 +5,7 @@ export type FieldType =
   | 'radio' 
   | 'checkbox' 
   | 'dropdown' 
-  | 'optionList' 
-  | 'date'
-  | 'time'
-  | 'number'
-  | 'image'
-  | 'signature'
-  | 'fileInput'
-  | 'fileOutput'
-  | 'richText';
+  | 'optionList';
 
 export interface Field {
   type: FieldType;
@@ -26,12 +18,6 @@ export interface Field {
   height: number;
   font: keyof typeof StandardFonts;
   fontSize: number;
-  inputFont?: keyof typeof StandardFonts;
-  inputFontSize?: number;
-  imageData?: string;
-  signatureData?: string;
-  fileData?: string;
-  richTextData?: string;
 }
 
 export interface PDFTextConfig {

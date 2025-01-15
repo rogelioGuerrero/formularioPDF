@@ -15,7 +15,7 @@ export default function FieldManager({
   onUpdateField,
   onReorderFields,
 }: FieldManagerProps) {
-  const [editingField, setEditingField] = React.useState<string | null>(null);
+  const [openSettingsId, setOpenSettingsId] = React.useState<string | null>(null);
   const dragItem = useRef<number | null>(null);
   const dragOverItem = useRef<number | null>(null);
 
@@ -39,8 +39,8 @@ export default function FieldManager({
     dragOverItem.current = null;
   };
 
-  const handleFieldSettings = (field: Field) => {
-    setEditingField(field.id);
+  const toggleFieldSettings = (fieldId: string) => {
+    setOpenSettingsId(prevId => prevId === fieldId ? null : fieldId);
   };
 
   return (
@@ -74,14 +74,18 @@ export default function FieldManager({
                 </div>
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => handleFieldSettings(field)}
-                    className="text-gray-500 hover:text-gray-700"
+                    onClick={() => toggleFieldSettings(field.id)}
+                    className={`p-1 rounded-md ${
+                      openSettingsId === field.id 
+                        ? 'bg-gray-200 text-gray-700' 
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
                   >
                     <Settings size={18} />
                   </button>
                   <button
                     onClick={() => onDeleteField(field.id)}
-                    className="text-red-500 hover:text-red-700"
+                    className="p-1 text-red-500 hover:text-red-700 rounded-md hover:bg-red-50"
                   >
                     <Trash2 size={18} />
                   </button>
@@ -89,7 +93,7 @@ export default function FieldManager({
               </div>
             </div>
 
-            {editingField === field.id && (
+            {openSettingsId === field.id && (
               <div className="mt-2 p-4 bg-gray-100 rounded-md">
                 <div className="grid grid-cols-2 gap-4">
                   <div>

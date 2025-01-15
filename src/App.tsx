@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { PDFDocument, StandardFonts } from 'pdf-lib';
 import { Layout } from './components/Layout';
-import { Sidebar } from './components/Sidebar';
 import PDFViewer from './components/PDFViewer';
 import FieldManager from './components/FieldManager';
 import type { Field, FieldType, PDFTextConfig } from './types';
@@ -23,178 +22,24 @@ const App = () => {
       verticalSpacing: 30,
     };
   });
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Save fields to storage whenever they change
-  useEffect(() => {
-    safeStorage.setItem('formFields', fields);
-  }, [fields]);
-
-  // Save pdfTextConfig to storage whenever it changes
-  useEffect(() => {
-    safeStorage.setItem('pdfConfig', pdfTextConfig);
-  }, [pdfTextConfig]);
-
-  const createForm = useCallback(async () => {
-    const pdfDoc = await PDFDocument.create();
-    const page = pdfDoc.addPage([550, 750]);
-    
-    let font;
-    try {
-      font = await pdfDoc.embedFont(pdfTextConfig.font);
-    } catch (error) {
-      console.error('Error loading font:', error);
-      font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    }
-
-    const form = pdfDoc.getForm();
-
-    fields.forEach((field) => {
-      // Draw field label
-      page.drawText(`${field.label}:`, { 
-        x: 50, 
-        y: field.yPosition, 
-        size: pdfTextConfig.fontSize,
-        font: font,
-        lineHeight: pdfTextConfig.fontSize * pdfTextConfig.lineHeight
-      });
-
-      // Handle different field types
-      switch (field.type) {
-        case 'text':
-        case 'number':
-        case 'date':
-        case 'time':
-        case 'richText':
-          const textField = form.createTextField(field.id);
-          textField.addToPage(page, { 
-            x: 50 + pdfTextConfig.labelSpacing, 
-            y: field.yPosition - pdfTextConfig.verticalSpacing, 
-            width: 200, 
-            height: pdfTextConfig.fontSize * 1.2
-          });
-          break;
-
-        case 'radio':
-          const radioGroup = form.createRadioGroup(field.id);
-          field.options?.forEach((option, index) => {
-            const yOffset = field.yPosition - (index * pdfTextConfig.fontSize * pdfTextConfig.lineHeight);
-            
-            page.drawText(option, { 
-              x: 50 + pdfTextConfig.labelSpacing, 
-              y: yOffset - pdfTextConfig.verticalSpacing, 
-              size: pdfTextConfig.fontSize,
-              font: font,
-              lineHeight: pdfTextConfig.fontSize * pdfTextConfig.lineHeight
-            });
-
-            const circleSize = pdfTextConfig.fontSize * 0.8;
-            const circleX = 50 + pdfTextConfig.labelSpacing - 20;
-            const circleY = yOffset - pdfTextConfig.verticalSpacing - (circleSize / 2);
-
-            radioGroup.addOptionToPage(option, page, { 
-              x: circleX, 
-              y: circleY, 
-              width: circleSize, 
-              height: circleSize 
-            });
-          });
-          break;
-
-        case 'checkbox':
-          field.options?.forEach((option, index) => {
-            const yOffset = field.yPosition - (index * pdfTextConfig.fontSize * pdfTextConfig.lineHeight);
-            
-            page.drawText(option, { 
-              x: 50 + pdfTextConfig.labelSpacing, 
-              y: yOffset - pdfTextConfig.verticalSpacing, 
-              size: pdfTextConfig.fontSize,
-              font: font,
-              lineHeight: pdfTextConfig.fontSize * pdfTextConfig.lineHeight
-            });
-
-            const checkboxSize = pdfTextConfig.fontSize * 0.8;
-            const checkboxX = 50 + pdfTextConfig.labelSpacing - 20;
-            const checkboxY = yOffset - pdfTextConfig.verticalSpacing - (checkboxSize / 2);
-
-            const checkBox = form.createCheckBox(`${field.id}.${option}`);
-            checkBox.addToPage(page, { 
-              x: checkboxX, 
-              y: checkboxY, 
-              width: checkboxSize, 
-              height: checkboxSize 
-            });
-          });
-          break;
-
-        case 'dropdown':
-          const dropdown = form.createDropdown(field.id);
-          dropdown.addOptions(field.options || []);
-          dropdown.addToPage(page, { 
-            x: 50 + pdfTextConfig.labelSpacing, 
-            y: field.yPosition - pdfTextConfig.verticalSpacing, 
-            width: 200, 
-            height: pdfTextConfig.fontSize * 1.2
-          });
-          break;
-
-        case 'optionList':
-          const optionList = form.createOptionList(field.id);
-          optionList.addOptions(field.options || []);
-          optionList.addToPage(page, { 
-            x: 50 + pdfTextConfig.labelSpacing, 
-            y: field.yPosition - 100 - pdfTextConfig.verticalSpacing, 
-            width: 200, 
-            height: pdfTextConfig.fontSize * 5
-          });
-          break;
-
-        case 'image':
-          if (field.imageData) {
-            const imageBytes = Uint8Array.from(atob(field.imageData), c => c.charCodeAt(0));
-            const image = pdfDoc.embedPng(imageBytes);
-            const { width, height } = image.scale(0.5);
-            page.drawImage(image, {
-              x: 50 + pdfTextConfig.labelSpacing,
-              y: field.yPosition - pdfTextConfig.verticalSpacing,
-              width,
-              height
-            });
-          }
-          break;
-
-        case 'signature':
-          if (field.signatureData) {
-            const signatureBytes = Uint8Array.from(atob(field.signatureData), c => c.charCodeAt(0));
-            const signature = pdfDoc.embedPng(signatureBytes);
-            const { width, height } = signature.scale(0.5);
-            page.drawImage(signature, {
-              x: 50 + pdfTextConfig.labelSpacing,
-              y: field.yPosition - pdfTextConfig.verticalSpacing,
-              width,
-              height
-            });
-          }
-          break;
-
-        case 'fileInput':
-        case 'fileOutput':
-          // Handle file fields as text fields for now
-          const fileField = form.createTextField(field.id);
-          fileField.addToPage(page, { 
-            x: 50 + pdfTextConfig.labelSpacing, 
-            y: field.yPosition - pdfTextConfig.verticalSpacing, 
-            width: 200, 
-            height: pdfTextConfig.fontSize * 1.2
-          });
-          break;
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      try {
+        const fileReader = new FileReader();
+        fileReader.onload = async (e) => {
+          const arrayBuffer = e.target?.result as ArrayBuffer;
+          const pdfDoc = await PDFDocument.load(arrayBuffer);
+          setPdfUrl(URL.createObjectURL(new Blob([await pdfDoc.save()], { type: 'application/pdf' })));
+        };
+        fileReader.readAsArrayBuffer(file);
+      } catch (error) {
+        console.error('Error loading PDF:', error);
       }
-    });
-
-    const pdfBytes = await pdfDoc.save();
-    const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
-    const url = URL.createObjectURL(pdfBlob);
-    setPdfUrl(url);
-  }, [fields, pdfTextConfig]);
+    }
+  };
 
   const addField = (type: FieldType) => {
     const newField: Field = {
@@ -228,20 +73,156 @@ const App = () => {
     setFields(newFields);
   };
 
+  const createForm = useCallback(async () => {
+    if (!fileInputRef.current?.files?.[0]) return;
+
+    const fileReader = new FileReader();
+    fileReader.onload = async (e) => {
+      const arrayBuffer = e.target?.result as ArrayBuffer;
+      const pdfDoc = await PDFDocument.load(arrayBuffer);
+      const pages = pdfDoc.getPages();
+      const firstPage = pages[0];
+      const { width, height } = firstPage.getSize();
+
+      let font;
+      try {
+        font = await pdfDoc.embedFont(pdfTextConfig.font);
+      } catch (error) {
+        console.error('Error loading font:', error);
+        font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+      }
+
+      const form = pdfDoc.getForm();
+
+      fields.forEach((field) => {
+        // Draw field label
+        firstPage.drawText(`${field.label}:`, { 
+          x: field.xPosition, 
+          y: height - field.yPosition, 
+          size: pdfTextConfig.fontSize,
+          font: font,
+          lineHeight: pdfTextConfig.fontSize * pdfTextConfig.lineHeight
+        });
+
+        // Handle different field types
+        switch (field.type) {
+          case 'text':
+            const textField = form.createTextField(field.id);
+            textField.addToPage(firstPage, { 
+              x: field.xPosition + pdfTextConfig.labelSpacing, 
+              y: height - field.yPosition - pdfTextConfig.verticalSpacing, 
+              width: field.width, 
+              height: field.height
+            });
+            break;
+
+          case 'radio':
+            const radioGroup = form.createRadioGroup(field.id);
+            field.options?.forEach((option, index) => {
+              const yOffset = field.yPosition - (index * pdfTextConfig.fontSize * pdfTextConfig.lineHeight);
+              
+              firstPage.drawText(option, { 
+                x: field.xPosition + pdfTextConfig.labelSpacing, 
+                y: height - yOffset - pdfTextConfig.verticalSpacing, 
+                size: pdfTextConfig.fontSize,
+                font: font,
+                lineHeight: pdfTextConfig.fontSize * pdfTextConfig.lineHeight
+              });
+
+              const circleSize = pdfTextConfig.fontSize * 0.8;
+              const circleX = field.xPosition + pdfTextConfig.labelSpacing - 20;
+              const circleY = height - yOffset - pdfTextConfig.verticalSpacing - (circleSize / 2);
+
+              radioGroup.addOptionToPage(option, firstPage, { 
+                x: circleX, 
+                y: circleY, 
+                width: circleSize, 
+                height: circleSize 
+              });
+            });
+            break;
+
+          case 'checkbox':
+            field.options?.forEach((option, index) => {
+              const yOffset = field.yPosition - (index * pdfTextConfig.fontSize * pdfTextConfig.lineHeight);
+              
+              firstPage.drawText(option, { 
+                x: field.xPosition + pdfTextConfig.labelSpacing, 
+                y: height - yOffset - pdfTextConfig.verticalSpacing, 
+                size: pdfTextConfig.fontSize,
+                font: font,
+                lineHeight: pdfTextConfig.fontSize * pdfTextConfig.lineHeight
+              });
+
+              const checkboxSize = pdfTextConfig.fontSize * 0.8;
+              const checkboxX = field.xPosition + pdfTextConfig.labelSpacing - 20;
+              const checkboxY = height - yOffset - pdfTextConfig.verticalSpacing - (checkboxSize / 2);
+
+              const checkBox = form.createCheckBox(`${field.id}.${option}`);
+              checkBox.addToPage(firstPage, { 
+                x: checkboxX, 
+                y: checkboxY, 
+                width: checkboxSize, 
+                height: checkboxSize 
+              });
+            });
+            break;
+
+          case 'dropdown':
+            const dropdown = form.createDropdown(field.id);
+            dropdown.addOptions(field.options || []);
+            dropdown.addToPage(firstPage, { 
+              x: field.xPosition + pdfTextConfig.labelSpacing, 
+              y: height - field.yPosition - pdfTextConfig.verticalSpacing, 
+              width: field.width, 
+              height: field.height
+            });
+            break;
+
+          case 'optionList':
+            const optionList = form.createOptionList(field.id);
+            optionList.addOptions(field.options || []);
+            optionList.addToPage(firstPage, { 
+              x: field.xPosition + pdfTextConfig.labelSpacing, 
+              y: height - field.yPosition - 100 - pdfTextConfig.verticalSpacing, 
+              width: field.width, 
+              height: field.height * 5
+            });
+            break;
+        }
+      });
+
+      const pdfBytes = await pdfDoc.save();
+      const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(pdfBlob);
+      setPdfUrl(url);
+    };
+
+    fileReader.readAsArrayBuffer(fileInputRef.current.files[0]);
+  }, [fields, pdfTextConfig]);
+
   // Call createForm whenever fields or pdfTextConfig changes
   useEffect(() => {
     createForm();
   }, [fields, pdfTextConfig]);
 
   return (
-    <Layout>
-      <Sidebar
-        onAddField={addField}
-        pdfTextConfig={pdfTextConfig}
-        onConfigChange={(config) => setPdfTextConfig({ ...pdfTextConfig, ...config })}
-      />
+    <Layout onAddField={addField}>
       <div className="flex-1 space-y-4">
-        <h1 className="text-3xl font-bold">Online Form Creator</h1>
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold">Online Form Creator</h1>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileUpload}
+            accept="application/pdf"
+            className="file:mr-4 file:py-2 file:px-4
+                     file:rounded-md file:border-0
+                     file:text-sm file:font-semibold
+                     file:bg-indigo-50 file:text-indigo-700
+                     hover:file:bg-indigo-100"
+          />
+        </div>
         <div className="grid grid-cols-2 gap-4">
           <FieldManager 
             fields={fields} 
