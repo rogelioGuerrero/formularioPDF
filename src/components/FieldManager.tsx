@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Trash2, GripVertical, Settings } from 'lucide-react';
 import type { Field } from '../types';
 
@@ -15,12 +15,13 @@ export default function FieldManager({
   onUpdateField,
   onReorderFields,
 }: FieldManagerProps) {
-  const [openSettingsId, setOpenSettingsId] = React.useState<string | null>(null);
+  const [openSettingsId, setOpenSettingsId] = useState<string | null>(null);
   const dragItem = useRef<number | null>(null);
   const dragOverItem = useRef<number | null>(null);
 
-  const handleDragStart = (index: number) => {
+  const handleDragStart = (event: React.DragEvent<HTMLDivElement>, index: number) => {
     dragItem.current = index;
+    event.dataTransfer.setData('text/plain', fields[index].id);
   };
 
   const handleDragEnter = (index: number) => {
@@ -40,23 +41,37 @@ export default function FieldManager({
   };
 
   const toggleFieldSettings = (fieldId: string) => {
-    setOpenSettingsId(prevId => prevId === fieldId ? null : fieldId);
+    setOpenSettingsId((prevId) => (prevId === fieldId ? null : fieldId));
   };
 
   const handleLabelChange = (id: string, value: string) => {
     onUpdateField(id, { label: value });
   };
 
-  const handlePositionChange = (id: string, field: 'xPosition' | 'yPosition', value: string) => {
+  const handlePositionChange = (
+    id: string,
+    field: 'xPosition' | 'yPosition',
+    value: string
+  ) => {
     onUpdateField(id, { [field]: Number(value) });
   };
 
-  const handleDimensionChange = (id: string, field: 'width' | 'height', value: string) => {
+  const handleDimensionChange = (
+    id: string,
+    field: 'width' | 'height',
+    value: string
+  ) => {
     onUpdateField(id, { [field]: Number(value) });
   };
 
-  const handleFontChange = (id: string, field: 'font' | 'fontSize', value: string) => {
-    onUpdateField(id, { [field]: field === 'fontSize' ? Number(value) : value });
+  const handleFontChange = (
+    id: string,
+    field: 'font' | 'fontSize',
+    value: string
+  ) => {
+    onUpdateField(id, {
+      [field]: field === 'fontSize' ? Number(value) : value,
+    });
   };
 
   return (
@@ -67,7 +82,7 @@ export default function FieldManager({
           <div key={field.id}>
             <div
               draggable
-              onDragStart={() => handleDragStart(index)}
+              onDragStart={(e) => handleDragStart(e, index)}
               onDragEnter={() => handleDragEnter(index)}
               onDragEnd={handleDragEnd}
               onDragOver={(e) => e.preventDefault()}
@@ -83,15 +98,17 @@ export default function FieldManager({
                       onChange={(e) => handleLabelChange(field.id, e.target.value)}
                       className="text-sm font-medium bg-transparent border-none focus:ring-0"
                     />
-                    <p className="text-xs text-gray-500 capitalize">{field.type}</p>
+                    <p className="text-xs text-gray-500 capitalize">
+                      {field.type}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => toggleFieldSettings(field.id)}
                     className={`p-1 rounded-md transition-colors ${
-                      openSettingsId === field.id 
-                        ? 'bg-gray-200 text-gray-700' 
+                      openSettingsId === field.id
+                        ? 'bg-gray-200 text-gray-700'
                         : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
                     }`}
                   >
@@ -117,7 +134,9 @@ export default function FieldManager({
                     <input
                       type="number"
                       value={field.xPosition}
-                      onChange={(e) => handlePositionChange(field.id, 'xPosition', e.target.value)}
+                      onChange={(e) =>
+                        handlePositionChange(field.id, 'xPosition', e.target.value)
+                      }
                       className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     />
                   </div>
@@ -128,7 +147,9 @@ export default function FieldManager({
                     <input
                       type="number"
                       value={field.yPosition}
-                      onChange={(e) => handlePositionChange(field.id, 'yPosition', e.target.value)}
+                      onChange={(e) =>
+                        handlePositionChange(field.id, 'yPosition', e.target.value)
+                      }
                       className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     />
                   </div>
@@ -139,7 +160,9 @@ export default function FieldManager({
                     <input
                       type="number"
                       value={field.width}
-                      onChange={(e) => handleDimensionChange(field.id, 'width', e.target.value)}
+                      onChange={(e) =>
+                        handleDimensionChange(field.id, 'width', e.target.value)
+                      }
                       className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     />
                   </div>
@@ -150,7 +173,9 @@ export default function FieldManager({
                     <input
                       type="number"
                       value={field.height}
-                      onChange={(e) => handleDimensionChange(field.id, 'height', e.target.value)}
+                      onChange={(e) =>
+                        handleDimensionChange(field.id, 'height', e.target.value)
+                      }
                       className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     />
                   </div>
@@ -160,7 +185,9 @@ export default function FieldManager({
                     </label>
                     <select
                       value={field.font}
-                      onChange={(e) => handleFontChange(field.id, 'font', e.target.value)}
+                      onChange={(e) =>
+                        handleFontChange(field.id, 'font', e.target.value)
+                      }
                       className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     >
                       <option value="Helvetica">Helvetica</option>
@@ -175,7 +202,9 @@ export default function FieldManager({
                     <input
                       type="number"
                       value={field.fontSize}
-                      onChange={(e) => handleFontChange(field.id, 'fontSize', e.target.value)}
+                      onChange={(e) =>
+                        handleFontChange(field.id, 'fontSize', e.target.value)
+                      }
                       className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     />
                   </div>

@@ -13,6 +13,7 @@ const App = () => {
     return savedFields || [];
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -70,6 +71,8 @@ const App = () => {
 
   const createForm = useCallback(async () => {
     if (!fileInputRef.current?.files?.[0]) return;
+
+    setIsGeneratingPdf(true);
 
     const fileReader = new FileReader();
     fileReader.onload = async (e) => {
@@ -198,11 +201,16 @@ const App = () => {
     };
 
     fileReader.readAsArrayBuffer(fileInputRef.current.files[0]);
+    setIsGeneratingPdf(false);
   }, [fields]);
 
   useEffect(() => {
+    safeStorage.setItem('formFields', fields);
+  }, [fields]);
+
+  const handleGeneratePdf = () => {
     createForm();
-  }, [fields, createForm]);
+  };
 
   return (
     <Layout onAddField={addField}>
@@ -211,17 +219,30 @@ const App = () => {
           <h1 className="text-3xl font-bold text-gray-900">
             Online Form Creator
           </h1>
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileUpload}
-            accept="application/pdf"
-            className="file:mr-4 file:py-2 file:px-4
-                     file:rounded-md file:border-0
-                     file:text-sm file:font-semibold
-                     file:bg-indigo-50 file:text-indigo-700
-                     hover:file:bg-indigo-100"
-          />
+          <div className="flex items-center gap-4">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              accept="application/pdf"
+              className="file:mr-4 file:py-2 file:px-4
+                      file:rounded-md file:border-0
+                      file:text-sm file:font-semibold
+                      file:bg-indigo-50 file:text-indigo-700
+                      hover:file:bg-indigo-100"
+            />
+            <button
+              onClick={handleGeneratePdf}
+              disabled={isGeneratingPdf}
+              className={`${
+                isGeneratingPdf
+                  ? 'bg-gray-500 cursor-not-allowed'
+                  : 'bg-blue-500 hover:bg-blue-700'
+              } text-white font-bold py-2 px-4 rounded-md`}
+            >
+              {isGeneratingPdf ? 'Generating...' : 'Generate PDF'}
+            </button>
+          </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <FieldManager
@@ -230,7 +251,11 @@ const App = () => {
             onUpdateField={updateField}
             onReorderFields={reorderFields}
           />
-          <PDFViewer pdfUrl={pdfUrl} />
+          <PDFViewer
+            pdfUrl={pdfUrl}
+            fields={fields}
+            updateField={updateField}
+          />
         </div>
       </div>
     </Layout>
