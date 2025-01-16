@@ -19,7 +19,10 @@ export default function FieldManager({
   const dragItem = useRef<number | null>(null);
   const dragOverItem = useRef<number | null>(null);
 
-  const handleDragStart = (event: React.DragEvent<HTMLDivElement>, index: number) => {
+  const handleDragStart = (
+    event: React.DragEvent<HTMLDivElement>,
+    index: number
+  ) => {
     dragItem.current = index;
     event.dataTransfer.setData('text/plain', fields[index].id);
   };
@@ -75,15 +78,18 @@ export default function FieldManager({
   };
 
   const handleAddOption = (id: string) => {
-    const field = fields.find(f => f.id === id);
+    const field = fields.find((f) => f.id === id);
     if (field) {
-      const newOptions = [...(field.options || []), `Opción ${(field.options?.length || 0) + 1}`];
+      const newOptions = [
+        ...(field.options || []),
+        `Opción ${(field.options?.length || 0) + 1}`,
+      ];
       onUpdateField(id, { options: newOptions });
     }
   };
 
   const handleRemoveOption = (id: string, index: number) => {
-    const field = fields.find(f => f.id === id);
+    const field = fields.find((f) => f.id === id);
     if (field?.options) {
       const newOptions = field.options.filter((_, i) => i !== index);
       onUpdateField(id, { options: newOptions });
@@ -91,7 +97,7 @@ export default function FieldManager({
   };
 
   const handleOptionChange = (id: string, index: number, value: string) => {
-    const field = fields.find(f => f.id === id);
+    const field = fields.find((f) => f.id === id);
     if (field?.options) {
       const newOptions = [...field.options];
       newOptions[index] = value;
@@ -101,6 +107,10 @@ export default function FieldManager({
 
   const handleLinesChange = (id: string, lines: number) => {
     onUpdateField(id, { lines });
+  };
+
+  const handleImageChange = (id: string, imageData: string) => {
+    onUpdateField(id, { imageData });
   };
 
   return (
@@ -124,11 +134,15 @@ export default function FieldManager({
                     <input
                       type="text"
                       value={field.label}
-                      onChange={(e) => handleLabelChange(field.id, e.target.value)}
+                      onChange={(e) =>
+                        handleLabelChange(field.id, e.target.value)
+                      }
                       className="text-sm font-medium bg-transparent border-none focus:ring-0"
                     />
                     <p className="text-xs text-gray-500 capitalize">
-                      {field.type === 'textarea' ? 'Área de texto' : field.type}
+                      {field.type === 'textarea'
+                        ? 'Área de texto'
+                        : field.type}
                     </p>
                   </div>
                 </div>
@@ -164,7 +178,11 @@ export default function FieldManager({
                       type="number"
                       value={field.xPosition}
                       onChange={(e) =>
-                        handlePositionChange(field.id, 'xPosition', e.target.value)
+                        handlePositionChange(
+                          field.id,
+                          'xPosition',
+                          e.target.value
+                        )
                       }
                       className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     />
@@ -177,7 +195,11 @@ export default function FieldManager({
                       type="number"
                       value={field.yPosition}
                       onChange={(e) =>
-                        handlePositionChange(field.id, 'yPosition', e.target.value)
+                        handlePositionChange(
+                          field.id,
+                          'yPosition',
+                          e.target.value
+                        )
                       }
                       className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     />
@@ -203,7 +225,11 @@ export default function FieldManager({
                       type="number"
                       value={field.height}
                       onChange={(e) =>
-                        handleDimensionChange(field.id, 'height', e.target.value)
+                        handleDimensionChange(
+                          field.id,
+                          'height',
+                          e.target.value
+                        )
                       }
                       className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                     />
@@ -224,40 +250,52 @@ export default function FieldManager({
                       />
                     </div>
                   )}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Font
-                    </label>
-                    <select
-                      value={field.font}
-                      onChange={(e) =>
-                        handleFontChange(field.id, 'font', e.target.value)
-                      }
-                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                    >
-                      <option value="Helvetica">Helvetica</option>
-                      <option value="TimesRoman">Times Roman</option>
-                      <option value="Courier">Courier</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Font Size
-                    </label>
-                    <input
-                      type="number"
-                      value={field.fontSize}
-                      onChange={(e) =>
-                        handleFontChange(field.id, 'fontSize', e.target.value)
-                      }
-                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                    />
-                  </div>
+                  {field.type !== 'image' && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Font
+                        </label>
+                        <select
+                          value={field.font}
+                          onChange={(e) =>
+                            handleFontChange(field.id, 'font', e.target.value)
+                          }
+                          className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        >
+                          <option value="Helvetica">Helvetica</option>
+                          <option value="TimesRoman">Times Roman</option>
+                          <option value="Courier">Courier</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Font Size
+                        </label>
+                        <input
+                          type="number"
+                          value={field.fontSize}
+                          onChange={(e) =>
+                            handleFontChange(
+                              field.id,
+                              'fontSize',
+                              e.target.value
+                            )
+                          }
+                          className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        />
+                      </div>
+                    </>
+                  )}
                 </div>
 
-                {['radio', 'checkbox', 'dropdown', 'optionList'].includes(field.type) && (
+                {['radio', 'checkbox', 'dropdown', 'optionList'].includes(
+                  field.type
+                ) && (
                   <div className="mt-4">
-                    <h3 className="text-sm font-medium text-gray-700 mb-2">Opciones</h3>
+                    <h3 className="text-sm font-medium text-gray-700 mb-2">
+                      Opciones
+                    </h3>
                     <div className="space-y-2">
                       {field.options?.map((option, index) => (
                         <div key={index} className="flex items-center gap-2">
@@ -265,7 +303,11 @@ export default function FieldManager({
                             type="text"
                             value={option}
                             onChange={(e) =>
-                              handleOptionChange(field.id, index, e.target.value)
+                              handleOptionChange(
+                                field.id,
+                                index,
+                                e.target.value
+                              )
                             }
                             className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                           />
@@ -285,6 +327,37 @@ export default function FieldManager({
                         Añadir opción
                       </button>
                     </div>
+                  </div>
+                )}
+
+                {field.type === 'image' && (
+                  <div className="mt-4">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = (e) => {
+                            handleImageChange(
+                              field.id,
+                              e.target?.result as string
+                            );
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                    {field.imageData && (
+                      <div className="mt-2">
+                        <img
+                          src={field.imageData}
+                          alt="Preview"
+                          className="max-w-full max-h-40"
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

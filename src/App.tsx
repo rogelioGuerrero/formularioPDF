@@ -47,6 +47,10 @@ const App = () => {
       labelSpacing: 20,
       verticalSpacing: 30,
     };
+    if (type === 'image') {
+      newField.width = 200;
+      newField.height = 200;
+    }
     if (type !== 'text') {
       newField.options = ['Option 1', 'Option 2', 'Option 3'];
     }
@@ -82,7 +86,26 @@ const App = () => {
       const firstPage = pages[0];
       const { width, height } = firstPage.getSize();
 
-      fields.forEach(async (field) => {
+      for (const field of fields) {
+        if (field.type === 'image' && field.imageData) {
+          try {
+            const imageBytes = await fetch(field.imageData)
+              .then(res => res.arrayBuffer());
+            const image = await pdfDoc.embedJpg(imageBytes);
+            const imageDims = image.scale(1);
+            
+            firstPage.drawImage(image, {
+              x: field.xPosition,
+              y: height - field.yPosition - field.height,
+              width: field.width,
+              height: field.height,
+            });
+          } catch (error) {
+            console.error('Error embedding image:', error);
+          }
+          continue;
+        }
+
         let font;
         try {
           font = await pdfDoc.embedFont(field.font);
@@ -194,7 +217,7 @@ const App = () => {
             });
             break;
         }
-      });
+      }
 
       const pdfBytes = await pdfDoc.save();
       const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
@@ -264,4 +287,4 @@ const App = () => {
   );
 };
 
-export default App; // Esta es la línea que faltaba
+export default App;

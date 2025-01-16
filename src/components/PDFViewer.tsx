@@ -4,7 +4,8 @@ import {
   CircleDot,
   CheckSquare,
   ChevronDown,
-  List
+  List,
+  Image as ImageIcon
 } from 'lucide-react';
 import type { Field } from '../types';
 
@@ -29,6 +30,8 @@ const FieldIcon = ({ type }: { type: string }) => {
       return <ChevronDown size={16} className="text-orange-600" />;
     case 'optionList':
       return <List size={16} className="text-red-600" />;
+    case 'image':
+      return <ImageIcon size={16} className="text-pink-600" />;
     default:
       return <TextCursorInput size={16} />;
   }
@@ -204,6 +207,29 @@ const PDFViewer = ({
                 </div>
               ))}
             </div>
+          </div>
+        );
+      case 'image':
+        return (
+          <div 
+            className="flex flex-col gap-2 p-2 bg-white rounded border border-pink-200"
+            style={textStyle}
+          >
+            <div className="flex items-center gap-2">
+              <FieldIcon type={field.type} />
+              <span>{field.label}</span>
+            </div>
+            {field.imageData && (
+              <img 
+                src={field.imageData} 
+                alt="Preview" 
+                className="max-w-full h-auto rounded"
+                style={{
+                  width: field.width,
+                  height: field.height
+                }}
+              />
+            )}
           </div>
         );
       default:

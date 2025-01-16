@@ -5,6 +5,7 @@ import {
   CheckSquare,
   ChevronDown,
   List,
+  Image as ImageIcon
 } from 'lucide-react';
 import type { FieldType } from '../types';
 
@@ -53,6 +54,13 @@ export function Sidebar({ onAddField }: SidebarProps) {
         title="Option List"
       >
         <List size={20} />
+      </button>
+      <button
+        onClick={() => handleIconClick('image')}
+        className="p-2 rounded-md hover:bg-gray-100 transition-colors"
+        title="Image"
+      >
+        <ImageIcon size={20} />
       </button>
     </div>
   );

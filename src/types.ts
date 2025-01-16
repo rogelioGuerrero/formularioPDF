@@ -6,7 +6,8 @@ export type FieldType =
   | 'radio' 
   | 'checkbox' 
   | 'dropdown' 
-  | 'optionList';
+  | 'optionList'
+  | 'image';
 
 export interface Field {
   type: FieldType;
@@ -23,4 +24,5 @@ export interface Field {
   labelSpacing: number;
   verticalSpacing: number;
   lines?: number;
+  imageData?: string;
 }
