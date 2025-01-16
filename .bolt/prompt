@@ -5,10 +5,9 @@ By default, this template supports JSX syntax with Tailwind and Shadcn CSS class
 Would you use icons like Material-icons, FontAwesome-v5,Line awesome or lucide-react for logos.
 
 Modify only relevant parts of the code. Do not replace unrelated sections. Make direct edits with clear comments explaining changes. 
+Por favor, siempre muestra el código completo de los archivos que modificas, incluyendo todos los imports y el código existente. No omitas ninguna parte del archivo, incluso si es repetitivo o no ha cambiado. Quiero ver el archivo completo con todos los cambios integrados.
 
 For extensive changes, rewrite the full block by chunk, preserving context and functionality.
-
-Use stock photos from unsplash where appropriate, only valid URLs you know exist. Do not download the images, only link to them in image tags.
 
 Consistency: Follow existing coding conventions and patterns.
 Refactor Incrementally: Improve small sections without major rewrites.
