@@ -7,14 +7,3 @@ Would you use icons like Material-icons, FontAwesome-v5,Line awesome or lucide-r
 Modify only relevant parts of the code. Do not replace unrelated sections. 
 Por favor, siempre muestra el código completo de los archivos que modificas, incluyendo todos los imports y el código existente. 
 No omitas ninguna parte del archivo, incluso si es repetitivo o no ha cambiado. Quiero ver el archivo completo con todos los cambios integrados.
-
-For extensive changes, rewrite the full block preserving context and functionality.
-
-Consistency: Follow existing coding conventions and patterns.
-Refactor Incrementally: Improve small sections without major rewrites.
-Handle Edge Cases: Ensure proper validation and error handling.
-Optimize Queries: Minimize database or external service calls.
-Tests Included: Add basic unit tests for significant functional changes.
-Centralize Configs: Store common values in a single config file.
-Reduce Dependencies: Remove unnecessary libraries and simplify the stack.
-Informative Logs: Add concise, useful logs for debugging.
