@@ -2,17 +2,13 @@ For all designs I ask you to make, have them be beautiful, not cookie cutter. Ma
 
 By default, this template supports JSX syntax with Tailwind and Shadcn CSS classes, React hooks, and Lucide React for icons. Do not install other packages for UI themes, icons, etc unless absolutely necessary or I request them.
 
-Use icons like Material-icons, FontAwesome-v5,Line awesome and aditional from lucide-react for logos.
+Would you use icons like Material-icons, FontAwesome-v5,Line awesome or lucide-react for logos.
 
-Modify only relevant parts of the code. Do not replace unrelated sections. Make direct edits with clear comments explaining changes. Avoid using markers like // ....
+Modify only relevant parts of the code. Do not replace unrelated sections. Make direct edits with clear comments explaining changes. 
 
-For extensive changes, rewrite the full block and provide a detailed comparison with the original, preserving context and functionality.
+For extensive changes, rewrite the full block by chunk, preserving context and functionality.
 
 Use stock photos from unsplash where appropriate, only valid URLs you know exist. Do not download the images, only link to them in image tags.
-
-Realiza únicamente modificaciones puntuales en el código existente, sin reemplazar partes que no están involucradas en el cambio. Si necesitas modificar o eliminar código, hazlo directamente y explica las modificaciones en comentarios. Nunca uses marcadores como // ... (código anterior) para reemplazar bloques de código. Además, asegúrate de conservar el contexto y la funcionalidad del código original.
-
-En casos donde el cambio sea extenso o complejo, escribe el nuevo bloque completo junto con una comparación explícita entre el código anterior y el modificado, detallando los cambios.
 
 Consistency: Follow existing coding conventions and patterns.
 Refactor Incrementally: Improve small sections without major rewrites.
