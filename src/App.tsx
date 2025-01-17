@@ -6,7 +6,6 @@ import { Sidebar } from './components/Sidebar';
 import FieldManager from './components/FieldManager';
 import type { Field, FieldType } from './types';
 
-// Función simple para generar UUIDs
 function generateUUID() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     const r = (Math.random() * 16) | 0,
@@ -19,9 +18,8 @@ export default function App() {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [fields, setFields] = useState<Field[]>([]);
   const [pageSize, setPageSize] = useState<{ width: number; height: number } | null>(null);
-  const dragItem = useRef<string | null>(null); // Referencia al ID del campo arrastrado
+  const dragItem = useRef<string | null>(null);
 
-  // Cargar campos guardados al iniciar
   useEffect(() => {
     const savedFields = safeStorage.getItem('pdfFields');
     if (savedFields) {
@@ -29,12 +27,10 @@ export default function App() {
     }
   }, []);
 
-  // Guardar campos en localStorage cuando cambian
   useEffect(() => {
     safeStorage.setItem('pdfFields', fields);
   }, [fields]);
 
-  // Manejar la carga del archivo PDF
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -48,13 +44,11 @@ export default function App() {
     }
   };
 
-  // Iniciar el arrastre de un campo
   const handleDragStart = (event: React.DragEvent<HTMLDivElement>, fieldId: string) => {
     dragItem.current = fieldId;
     event.dataTransfer.setData('text/plain', fieldId);
   };
 
-  // Manejar el arrastre y soltar de campos
   const handleFieldDrop = (fieldId: string, x: number, y: number) => {
     setFields((prevFields) =>
       prevFields.map((field) =>
@@ -63,17 +57,14 @@ export default function App() {
     );
   };
 
-  // Eliminar un campo individual
   const handleDeleteField = (fieldId: string) => {
     setFields((prevFields) => prevFields.filter((field) => field.id !== fieldId));
   };
 
-  // Restablecer todos los campos
   const handleResetFields = () => {
     setFields([]);
   };
 
-  // Actualizar las propiedades de un campo
   const handleUpdateField = (fieldId: string, updatedProps: Partial<Field>) => {
     setFields((prevFields) =>
       prevFields.map((field) =>
@@ -82,10 +73,9 @@ export default function App() {
     );
   };
 
-  // Agregar un nuevo campo
   const handleAddField = (type: FieldType) => {
     const newField: Field = {
-      id: generateUUID(), // Usar la función generadora de UUIDs
+      id: generateUUID(),
       type,
       label: `Campo ${type}`,
       xPosition: 0,
@@ -101,49 +91,54 @@ export default function App() {
     setFields((prevFields) => [...prevFields, newField]);
   };
 
-  // Reordenar campos (ya no se usa con HTML5 drag and drop)
-  // const handleReorderFields = (newFields: Field[]) => {
-  //   setFields(newFields);
-  // };
-
   return (
-    <div className="container mx-auto p-4 flex gap-4">
-      <Sidebar onAddField={handleAddField} />
-      <div className="flex-1">
-        <input
-          type="file"
-          accept="application/pdf"
-          onChange={handleFileChange}
-          className="mb-4"
-        />
+    <div className="flex flex-col h-screen bg-gray-50">
+      {/* Top Bar */}
+      <div className="bg-white shadow-sm p-4 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <input
+            type="file"
+            accept="application/pdf"
+            onChange={handleFileChange}
+            className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+          />
+          <Sidebar onAddField={handleAddField} />
+        </div>
+        <button
+          onClick={handleResetFields}
+          className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors"
+        >
+          Restablecer Campos
+        </button>
+      </div>
 
-        {pdfUrl && pageSize && (
-          <div className="mt-4">
-            <button
-              onClick={handleResetFields}
-              className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors mb-4"
-            >
-              Restablecer Campos
-            </button>
-            <div className="grid grid-cols-2 gap-4">
-              <PDFViewer
-                pdfUrl={pdfUrl}
-                fields={fields}
-                onFieldDrop={handleFieldDrop}
-                onDeleteField={handleDeleteField}
-                onUpdateField={handleUpdateField}
-                pageSize={pageSize}
-                onDragStart={handleDragStart}
-              />
-              <FieldManager
-                fields={fields}
-                onDeleteField={handleDeleteField}
-                onUpdateField={handleUpdateField}
-                // onReorderFields={handleReorderFields} // Ya no se usa
-              />
-            </div>
-          </div>
-        )}
+      {/* Main Content */}
+      <div className="flex-1 grid grid-cols-[30%_70%] gap-6 p-6">
+        {/* Field Manager */}
+        <div className="bg-white rounded-lg shadow-md p-6 overflow-y-auto">
+          <h2 className="text-xl font-semibold mb-6">Field Manager</h2>
+          <FieldManager
+            fields={fields}
+            onDeleteField={handleDeleteField}
+            onUpdateField={handleUpdateField}
+          />
+        </div>
+
+        {/* PDF Preview */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-xl font-semibold mb-6">PDF Preview</h2>
+          {pdfUrl && pageSize && (
+            <PDFViewer
+              pdfUrl={pdfUrl}
+              fields={fields}
+              onFieldDrop={handleFieldDrop}
+              onDeleteField={handleDeleteField}
+              onUpdateField={handleUpdateField}
+              pageSize={pageSize}
+              onDragStart={handleDragStart}
+            />
+          )}
+        </div>
       </div>
     </div>
   );

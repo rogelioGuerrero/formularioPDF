@@ -19,7 +19,7 @@ export function Sidebar({ onAddField }: SidebarProps) {
   };
 
   return (
-    <div className="w-16 bg-white p-2 rounded-lg shadow-md flex flex-col items-center gap-4">
+    <div className="flex gap-2">
       <button
         onClick={() => handleIconClick('text')}
         className="p-2 rounded-md hover:bg-gray-100 transition-colors"
