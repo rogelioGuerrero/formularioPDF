@@ -7,9 +7,10 @@ interface PDFViewerProps {
   onDeleteField: (fieldId: string) => void;
   onUpdateField: (fieldId: string, updatedProps: Partial<{ label: string; width: number; height: number; font: string; fontSize: number }>) => void;
   pageSize: { width: number; height: number };
+  onDragStart: (event: React.DragEvent<HTMLDivElement>, fieldId: string) => void;
 }
 
-export default function PDFViewer({ pdfUrl, fields, onFieldDrop, onDeleteField, onUpdateField, pageSize }: PDFViewerProps) {
+export default function PDFViewer({ pdfUrl, fields, onFieldDrop, onDeleteField, onUpdateField, pageSize, onDragStart }: PDFViewerProps) {
   const [zoomLevel, setZoomLevel] = useState(1);
   const [editingFieldId, setEditingFieldId] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -86,7 +87,7 @@ export default function PDFViewer({ pdfUrl, fields, onFieldDrop, onDeleteField, 
         {fields.map((field) => (
           <div
             key={field.id}
-            className="absolute border-2 border-blue-500 bg-blue-100/50"
+            className="absolute border-2 border-blue-500 bg-blue-100/50 cursor-move"
             style={{
               left: field.xPosition * zoomLevel,
               top: field.yPosition * zoomLevel,
@@ -94,6 +95,8 @@ export default function PDFViewer({ pdfUrl, fields, onFieldDrop, onDeleteField, 
               height: field.height * zoomLevel,
               zIndex: 10, // Asegurar que los botones estén por encima del PDF
             }}
+            draggable
+            onDragStart={(e) => onDragStart(e, field.id)}
           >
             <button
               onClick={() => onDeleteField(field.id)}

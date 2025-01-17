@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { PDFDocument } from 'pdf-lib';
 import PDFViewer from './components/PDFViewer';
 import { safeStorage } from './utils/storage';
@@ -19,6 +19,7 @@ export default function App() {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [fields, setFields] = useState<Field[]>([]);
   const [pageSize, setPageSize] = useState<{ width: number; height: number } | null>(null);
+  const dragItem = useRef<string | null>(null); // Referencia al ID del campo arrastrado
 
   // Cargar campos guardados al iniciar
   useEffect(() => {
@@ -45,6 +46,12 @@ export default function App() {
       const url = URL.createObjectURL(new Blob([arrayBuffer], { type: 'application/pdf' }));
       setPdfUrl(url);
     }
+  };
+
+  // Iniciar el arrastre de un campo
+  const handleDragStart = (event: React.DragEvent<HTMLDivElement>, fieldId: string) => {
+    dragItem.current = fieldId;
+    event.dataTransfer.setData('text/plain', fieldId);
   };
 
   // Manejar el arrastre y soltar de campos
@@ -94,10 +101,10 @@ export default function App() {
     setFields((prevFields) => [...prevFields, newField]);
   };
 
-  // Reordenar campos
-  const handleReorderFields = (newFields: Field[]) => {
-    setFields(newFields);
-  };
+  // Reordenar campos (ya no se usa con HTML5 drag and drop)
+  // const handleReorderFields = (newFields: Field[]) => {
+  //   setFields(newFields);
+  // };
 
   return (
     <div className="container mx-auto p-4 flex gap-4">
@@ -126,12 +133,13 @@ export default function App() {
                 onDeleteField={handleDeleteField}
                 onUpdateField={handleUpdateField}
                 pageSize={pageSize}
+                onDragStart={handleDragStart}
               />
               <FieldManager
                 fields={fields}
                 onDeleteField={handleDeleteField}
                 onUpdateField={handleUpdateField}
-                onReorderFields={handleReorderFields}
+                // onReorderFields={handleReorderFields} // Ya no se usa
               />
             </div>
           </div>
