@@ -5,7 +5,7 @@ import {
   CheckSquare,
   ChevronDown,
   List,
-  Image as ImageIcon
+  Image as ImageIcon,
 } from 'lucide-react';
 import type { FieldType } from '../types';
 

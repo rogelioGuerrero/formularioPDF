@@ -4,6 +4,6 @@ By default, this template supports JSX syntax with Tailwind and Shadcn CSS class
 
 Would you use icons like Material-icons, FontAwesome-v5,Line awesome or lucide-react for logos.
 
-Modify only relevant parts of the code y garantiza de que todo el código esté presente y correcto. Do not replace unrelated sections. No incluyas comentarios que indiquen partes no cambiadas.
+Modify only relevant parts of the code. Do not replace unrelated sections. No incluyas comentarios que indiquen partes no cambiadas.
 Por favor, siempre muestra el código completo de los archivos que modificas, incluyendo todos los imports y el código existente. 
 No omitas ninguna parte del archivo, incluso si es repetitivo o no ha cambiado. Quiero ver el archivo completo con todos los cambios integrados.

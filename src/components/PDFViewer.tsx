@@ -1,295 +1,196 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { 
-  TextCursorInput,
-  CircleDot,
-  CheckSquare,
-  ChevronDown,
-  List,
-  Image as ImageIcon
-} from 'lucide-react';
-import type { Field } from '../types';
+import React, { useState, useRef, useEffect } from 'react';
 
 interface PDFViewerProps {
-  pdfUrl: string | null;
-  fields: Field[];
-  updateField: (
-    id: string,
-    updatedField: Partial<{ xPosition: number; yPosition: number }>
-  ) => void;
+  pdfUrl: string;
+  fields: Array<{ id: string; label: string; xPosition: number; yPosition: number; width: number; height: number; font: string; fontSize: number }>;
+  onFieldDrop: (fieldId: string, x: number, y: number) => void;
+  onDeleteField: (fieldId: string) => void;
+  onUpdateField: (fieldId: string, updatedProps: Partial<{ label: string; width: number; height: number; font: string; fontSize: number }>) => void;
+  pageSize: { width: number; height: number };
 }
 
-const FieldIcon = ({ type }: { type: string }) => {
-  switch (type) {
-    case 'text':
-      return <TextCursorInput size={16} className="text-blue-600" />;
-    case 'radio':
-      return <CircleDot size={16} className="text-green-600" />;
-    case 'checkbox':
-      return <CheckSquare size={16} className="text-purple-600" />;
-    case 'dropdown':
-      return <ChevronDown size={16} className="text-orange-600" />;
-    case 'optionList':
-      return <List size={16} className="text-red-600" />;
-    case 'image':
-      return <ImageIcon size={16} className="text-pink-600" />;
-    default:
-      return <TextCursorInput size={16} />;
-  }
-};
+export default function PDFViewer({ pdfUrl, fields, onFieldDrop, onDeleteField, onUpdateField, pageSize }: PDFViewerProps) {
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [editingFieldId, setEditingFieldId] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-const PDFViewer = ({
-  pdfUrl,
-  fields,
-  updateField,
-}: PDFViewerProps) => {
-  const pdfContainerRef = useRef<HTMLDivElement>(null);
-  const [draggingFieldId, setDraggingFieldId] = useState<string | null>(null);
-  const [fieldPosition, setFieldPosition] = useState<{
-    x: number;
-    y: number;
-  } | null>(null);
-  const [iframeLoaded, setIframeLoaded] = useState(false);
-  const [showOverlay, setShowOverlay] = useState(false);
-
-  const handleDragStart = (
-    event: React.DragEvent<HTMLDivElement>,
-    fieldId: string
-  ) => {
-    setDraggingFieldId(fieldId);
-    setShowOverlay(true);
-    event.dataTransfer.setData('text/plain', fieldId);
-  };
-
-  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    event.dataTransfer.dropEffect = 'move';
-
-    const containerRect = pdfContainerRef.current?.getBoundingClientRect();
-    if (containerRect) {
-      const x = event.clientX - containerRect.left;
-      const y = event.clientY - containerRect.top;
-      setFieldPosition({ x, y });
+  // Ajustar el tamaño del contenedor según el tamaño de la página y el zoom
+  useEffect(() => {
+    if (containerRef.current && pageSize) {
+      const { width, height } = pageSize;
+      containerRef.current.style.width = `${width * zoomLevel}px`;
+      containerRef.current.style.height = `${height * zoomLevel}px`;
     }
+  }, [pageSize, zoomLevel]);
+
+  // Manejar el zoom in
+  const handleZoomIn = () => {
+    setZoomLevel((prev) => Math.min(prev + 0.1, 2)); // Límite máximo de zoom: 2x
   };
 
-  const handleDragEnd = () => {
-    setDraggingFieldId(null);
-    setFieldPosition(null);
-    setShowOverlay(false);
+  // Manejar el zoom out
+  const handleZoomOut = () => {
+    setZoomLevel((prev) => Math.max(prev - 0.1, 0.5)); // Límite mínimo de zoom: 0.5x
   };
 
+  // Manejar el arrastre y soltar de campos
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
-    const fieldId = event.dataTransfer.getData('text/plain');
-    const containerRect = pdfContainerRef.current?.getBoundingClientRect();
-
-    if (containerRect) {
-      const x = event.clientX - containerRect.left;
-      const y = event.clientY - containerRect.top;
-
-      updateField(fieldId, { 
-        xPosition: x,
-        yPosition: y 
-      });
+    if (containerRef.current) {
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const fieldId = event.dataTransfer.getData('text/plain');
+      const x = (event.clientX - containerRect.left) / zoomLevel;
+      const y = (event.clientY - containerRect.top) / zoomLevel;
+      onFieldDrop(fieldId, x, y);
     }
   };
 
-  const handleIframeLoad = () => {
-    setIframeLoaded(true);
-  };
-
-  const renderFieldContent = (field: Field) => {
-    const textStyle = {
-      fontFamily: field.font,
-      fontSize: field.fontSize,
-      lineHeight: field.lineHeight,
-    };
-
-    switch (field.type) {
-      case 'text':
-        return (
-          <div 
-            className="flex items-center gap-2 p-2 bg-white rounded border border-blue-200"
-            style={textStyle}
-          >
-            <FieldIcon type={field.type} />
-            <span>{field.label}</span>
-          </div>
-        );
-      case 'textarea':
-        return (
-          <div 
-            className="flex flex-col gap-2 p-2 bg-white rounded border border-blue-200"
-            style={textStyle}
-          >
-            <div className="flex items-center gap-2">
-              <FieldIcon type={field.type} />
-              <span>{field.label}</span>
-            </div>
-            <div className="w-full h-full bg-gray-100 rounded p-1">
-              {Array.from({ length: field.lines || 1 }).map((_, i) => (
-                <div key={i} className="w-full h-4 bg-gray-200 mb-1 rounded" />
-              ))}
-            </div>
-          </div>
-        );
-      case 'radio':
-        return (
-          <div 
-            className="flex flex-col gap-2 p-2 bg-white rounded border border-green-200"
-            style={textStyle}
-          >
-            <div className="flex items-center gap-2">
-              <FieldIcon type={field.type} />
-              <span>{field.label}</span>
-            </div>
-            {(field.options || []).map((option: string, i: number) => (
-              <div key={i} className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full border border-gray-400" />
-                <span>{option}</span>
-              </div>
-            ))}
-          </div>
-        );
-      case 'checkbox':
-        return (
-          <div 
-            className="flex flex-col gap-2 p-2 bg-white rounded border border-purple-200"
-            style={textStyle}
-          >
-            <div className="flex items-center gap-2">
-              <FieldIcon type={field.type} />
-              <span>{field.label}</span>
-            </div>
-            {(field.options || []).map((option: string, i: number) => (
-              <div key={i} className="flex items-center gap-2">
-                <div className="w-4 h-4 border border-gray-400 rounded-sm" />
-                <span>{option}</span>
-              </div>
-            ))}
-          </div>
-        );
-      case 'dropdown':
-        return (
-          <div 
-            className="flex flex-col gap-2 p-2 bg-white rounded border border-orange-200"
-            style={textStyle}
-          >
-            <div className="flex items-center gap-2">
-              <FieldIcon type={field.type} />
-              <span>{field.label}</span>
-            </div>
-            <div className="flex flex-col gap-1">
-              {(field.options || []).map((option: string, i: number) => (
-                <div key={i} className="flex items-center gap-2">
-                  <div className="w-24 h-6 bg-gray-200 rounded" />
-                  <span className="text-sm">{option}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-      case 'optionList':
-        return (
-          <div 
-            className="flex flex-col gap-2 p-2 bg-white rounded border border-red-200"
-            style={textStyle}
-          >
-            <div className="flex items-center gap-2">
-              <FieldIcon type={field.type} />
-              <span>{field.label}</span>
-            </div>
-            <div className="flex flex-col gap-1">
-              {(field.options || []).map((option: string, i: number) => (
-                <div key={i} className="flex items-center gap-2">
-                  <div className="w-24 h-4 bg-gray-200 rounded" />
-                  <span className="text-sm">{option}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-      case 'image':
-        return (
-          <div 
-            className="flex flex-col gap-2 p-2 bg-white rounded border border-pink-200"
-            style={textStyle}
-          >
-            <div className="flex items-center gap-2">
-              <FieldIcon type={field.type} />
-              <span>{field.label}</span>
-            </div>
-            {field.imageData && (
-              <img 
-                src={field.imageData} 
-                alt="Preview" 
-                className="max-w-full h-auto rounded"
-                style={{
-                  width: field.width,
-                  height: field.height
-                }}
-              />
-            )}
-          </div>
-        );
-      default:
-        return null;
-    }
+  // Manejar la edición de un campo
+  const handleEditField = (fieldId: string) => {
+    setEditingFieldId(fieldId);
   };
 
   return (
-    <div className="bg-gray-200 p-4 rounded-lg shadow-md">
-      <div
-        ref={pdfContainerRef}
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
-        className="overflow-auto relative"
-        style={{ height: '800px' }}
-      >
-        {pdfUrl && (
-          <div className="relative" style={{ width: '100%', height: '100%' }}>
-            <iframe
-              src={pdfUrl}
-              className="w-full h-full"
-              title="PDF Preview"
-              onLoad={handleIframeLoad}
-            />
-            {showOverlay && (
-              <div
-                className="absolute top-0 left-0 w-full h-full bg-transparent"
-                style={{ zIndex: 10 }}
-              />
-            )}
-            {iframeLoaded &&
-              fields.map((field) => (
-                <div
-                  key={field.id}
-                  draggable={true}
-                  onDragStart={(e) => handleDragStart(e, field.id)}
-                  onDragEnd={handleDragEnd}
-                  style={{
-                    position: 'absolute',
-                    left: field.xPosition,
-                    top: field.yPosition,
-                    width: field.width,
-                    height: field.height,
-                    cursor: 'move',
-                    zIndex: 20,
-                  }}
-                >
-                  {renderFieldContent(field)}
-                </div>
-              ))}
-          </div>
-        )}
+    <div className="relative">
+      {/* Controles de zoom */}
+      <div className="absolute top-2 right-2 z-10 flex gap-2">
+        <button
+          onClick={handleZoomIn}
+          className="bg-white p-2 rounded-md shadow-md hover:bg-gray-100"
+        >
+          Zoom In
+        </button>
+        <button
+          onClick={handleZoomOut}
+          className="bg-white p-2 rounded-md shadow-md hover:bg-gray-100"
+        >
+          Zoom Out
+        </button>
       </div>
-      {draggingFieldId && fieldPosition && (
-        <div className="mt-2 text-sm">
-          Position: ({fieldPosition.x.toFixed(0)}, {fieldPosition.y.toFixed(0)})
+
+      {/* Contenedor del PDF */}
+      <div
+        ref={containerRef}
+        onDrop={handleDrop}
+        onDragOver={(e) => e.preventDefault()}
+        className="relative border border-gray-300"
+      >
+        {/* PDF */}
+        <iframe
+          src={pdfUrl}
+          className="w-full h-full pointer-events-none"
+          style={{ transform: `scale(${zoomLevel})`, transformOrigin: '0 0' }}
+        />
+
+        {/* Campos */}
+        {fields.map((field) => (
+          <div
+            key={field.id}
+            className="absolute border-2 border-blue-500 bg-blue-100/50"
+            style={{
+              left: field.xPosition * zoomLevel,
+              top: field.yPosition * zoomLevel,
+              width: field.width * zoomLevel,
+              height: field.height * zoomLevel,
+              zIndex: 10, // Asegurar que los botones estén por encima del PDF
+            }}
+          >
+            <button
+              onClick={() => onDeleteField(field.id)}
+              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center hover:bg-red-600"
+            >
+              ×
+            </button>
+            <button
+              onClick={() => handleEditField(field.id)}
+              className="absolute -top-2 -left-2 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center hover:bg-blue-600"
+            >
+              ✎
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* Modal de edición */}
+      {editingFieldId && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-lg font-semibold mb-4">Editar Campo</h2>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                setEditingFieldId(null);
+              }}
+            >
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Etiqueta</label>
+                  <input
+                    type="text"
+                    value={fields.find((f) => f.id === editingFieldId)?.label || ''}
+                    onChange={(e) => onUpdateField(editingFieldId, { label: e.target.value })}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Ancho</label>
+                  <input
+                    type="number"
+                    value={fields.find((f) => f.id === editingFieldId)?.width || 0}
+                    onChange={(e) => onUpdateField(editingFieldId, { width: Number(e.target.value) })}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Alto</label>
+                  <input
+                    type="number"
+                    value={fields.find((f) => f.id === editingFieldId)?.height || 0}
+                    onChange={(e) => onUpdateField(editingFieldId, { height: Number(e.target.value) })}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Fuente</label>
+                  <select
+                    value={fields.find((f) => f.id === editingFieldId)?.font || 'Helvetica'}
+                    onChange={(e) => onUpdateField(editingFieldId, { font: e.target.value })}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  >
+                    <option value="Helvetica">Helvetica</option>
+                    <option value="TimesRoman">Times Roman</option>
+                    <option value="Courier">Courier</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Tamaño de Fuente</label>
+                  <input
+                    type="number"
+                    value={fields.find((f) => f.id === editingFieldId)?.fontSize || 12}
+                    onChange={(e) => onUpdateField(editingFieldId, { fontSize: Number(e.target.value) })}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                  />
+                </div>
+              </div>
+              <div className="mt-6 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditingFieldId(null)}
+                  className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="bg-indigo-500 text-white px-4 py-2 rounded-md hover:bg-indigo-600 transition-colors"
+                >
+                  Guardar
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>
   );
-};
-
-export default PDFViewer;
+}
